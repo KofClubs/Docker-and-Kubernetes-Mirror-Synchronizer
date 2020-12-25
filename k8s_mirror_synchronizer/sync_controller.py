@@ -145,7 +145,7 @@ def get_pkg_tags():
     pkgTagsFile.close()
 
 
-def download_pkgs():
+def create_local_repo():
     if not os.path.exists("../package_lists/pkg_tags.list"):
         logging.error("pkg_tags.list not found!")
         return
@@ -161,12 +161,16 @@ def download_pkgs():
         url = urlPrefix+pkgTagInUrl+fileExtension
         urlretrieve(url, filename=localRepoDir+pkgTagInUrl+fileExtension)
 
+    os.system(f"createrepo {localRepoDir}")
+
 
 def clean_tmp_files():
     os.remove("../package_lists/filelists.xml.gz")
     logging.info("filelists.xml.gz deleted.")
+
     os.remove("../package_lists/filelists.xml")
     logging.info("filelists.xml deleted.")
+
     os.remove("../package_lists/pkg_tags.list")
     logging.info("pkg_tags.list deleted.")
 
@@ -174,5 +178,5 @@ def clean_tmp_files():
 if __name__ == "__main__":
     download_filelists()
     get_pkg_tags()
-    # download_pkgs()
+    create_local_repo()
     clean_tmp_files()
