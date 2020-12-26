@@ -1,5 +1,0 @@
-linux_distribution: "centos"
-source: "aliyun"
-testing_version_permission: False
-version_depth: 1
-local_repo_dir: "../kubernetes-el7-x86_64/Packages"

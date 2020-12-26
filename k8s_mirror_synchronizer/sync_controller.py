@@ -3,10 +3,11 @@ import logging
 import json
 import os
 from urllib.request import urlretrieve
-import yaml
 import sys
 import getopt
 import gzip
+
+from settings import LINUX_DISTRIBUTION, SOURCE, TESTING_VERSION_PERMISSION, VERSION_DEPTH, LOCAL_REPO_DIR
 
 filelistsXmlGzUrl = "https://mirrors.aliyun.com/kubernetes/yum/repos/kubernetes-el7-x86_64/repodata/filelists.xml.gz"
 urlPrefix = "https://mirrors.aliyun.com/kubernetes/yum/repos/kubernetes-el7-x86_64/Packages/"
@@ -14,20 +15,15 @@ fileExtension = ".rpm"
 
 testingVersionPermission = True
 versionDepth = 0
-localRepoDir = "../kubernetes-el7-x86_64/Packages"
 
 
 def __init__():
-    with open("../config.yaml", "r") as cf:
-        content = yaml.load(cf)
+    linuxDistribution = LINUX_DISTRIBUTION
+    source = SOURCE
 
-    linuxDistribution = content["linux_distribution"]
-    source = content["source"]
-
-    global testingVersionPermission, versionDepth, localRepoDir
-    testingVersionPermission = content["testing_version_permission"]
-    versionDepth = content["version_depth"]
-    localRepoDir = content["local_repo_dir"]
+    global testingVersionPermission, versionDepth
+    testingVersionPermission = TESTING_VERSION_PERMISSION
+    versionDepth = VERSION_DEPTH
 
     global filelistsXmlGzUrl, urlPrefix, fileExtension
     # TODO RedHat系发行版
@@ -150,18 +146,19 @@ def create_local_repo():
         logging.error("pkg_tags.list not found!")
         return
 
-    global localRepoDir, urlPrefix, fileExtension
-    if not os.path.exists(localRepoDir):
-        os.makedirs(localRepoDir)
-        logging.info(f"New directory created: {localRepoDir}.")
+    global urlPrefix, fileExtension
+    if not os.path.exists(LOCAL_REPO_DIR):
+        os.makedirs(LOCAL_REPO_DIR)
+        logging.info(f"New directory created: {LOCAL_REPO_DIR}.")
 
     pkgTagsFile = open("../package_lists/pkg_tags.list", "r")
     pkgTags = pkgTagsFile.readlines()
     for pkgTagInUrl in pkgTags:
-        url = urlPrefix+pkgTagInUrl+fileExtension
-        urlretrieve(url, filename=localRepoDir+pkgTagInUrl+fileExtension)
+        url = urlPrefix+pkgTagInUrl[:-1]+fileExtension  # 舍弃末元素“\n”
+        urlretrieve(url, filename=LOCAL_REPO_DIR +
+                    pkgTagInUrl[:-1]+fileExtension)
 
-    os.system(f"createrepo {localRepoDir}")
+    os.system(f"createrepo {LOCAL_REPO_DIR}")
 
 
 def clean_tmp_files():
@@ -179,4 +176,4 @@ if __name__ == "__main__":
     download_filelists()
     get_pkg_tags()
     create_local_repo()
-    clean_tmp_files()
+    # clean_tmp_files()
