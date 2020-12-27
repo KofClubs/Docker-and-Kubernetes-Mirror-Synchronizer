@@ -147,16 +147,16 @@ def create_local_repo():
         return
 
     global urlPrefix, fileExtension
-    if not os.path.exists(LOCAL_REPO_DIR):
-        os.makedirs(LOCAL_REPO_DIR)
-        logging.info(f"New directory created: {LOCAL_REPO_DIR}.")
+    if not os.path.exists(LOCAL_REPO_DIR+"Packages/"):
+        os.makedirs(LOCAL_REPO_DIR+"Packages/")
+        logging.info(f"New directory created: {LOCAL_REPO_DIR}Packages.")
 
     pkgTagsFile = open("../package_lists/pkg_tags.list", "r")
     pkgTags = pkgTagsFile.readlines()
     for pkgTagInUrl in pkgTags:
         url = urlPrefix+pkgTagInUrl[:-1]+fileExtension  # 舍弃末元素“\n”
         urlretrieve(url, filename=LOCAL_REPO_DIR +
-                    pkgTagInUrl[:-1]+fileExtension)
+                    "Packages/"+pkgTagInUrl[:-1]+fileExtension)
 
     os.system(f"createrepo {LOCAL_REPO_DIR}")
 
