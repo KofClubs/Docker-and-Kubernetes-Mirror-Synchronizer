@@ -61,31 +61,31 @@ def __init__():
 
 
 def download_filelists():
-    if not os.path.exists("../package_lists"):
-        os.makedirs("../package_lists")
-        logging.info("New directory created: ../package_lists.")
+    if not os.path.exists("/tmp/package_lists"):
+        os.makedirs("/tmp/package_lists")
+        logging.info("New directory created: /tmp/package_lists.")
 
     global filelistsXmlGzUrl
     urlretrieve(filelistsXmlGzUrl,
-                filename="../package_lists/filelists.xml.gz")
+                filename="/tmp/package_lists/filelists.xml.gz")
     logging.info(
-        "filelists.xml.gz downloaded: ../package_lists/filelists.xml.gz.")
+        "filelists.xml.gz downloaded: /tmp/package_lists/filelists.xml.gz.")
 
-    gzFile = gzip.open("../package_lists/filelists.xml.gz", "rb")
-    xmlFile = open("../package_lists/filelists.xml", "w")
+    gzFile = gzip.open("/tmp/package_lists/filelists.xml.gz", "rb")
+    xmlFile = open("/tmp/package_lists/filelists.xml", "w")
     content = gzFile.read()
     xmlFile.write(content.decode("utf-8"))
-    logging.info("filelists.xml created: ../package_lists/filelists.xml.")
+    logging.info("filelists.xml created: /tmp/package_lists/filelists.xml.")
     gzFile.close()
     xmlFile.close()
 
 
 def get_pkg_tags():
-    if not os.path.exists("../package_lists/filelists.xml"):
+    if not os.path.exists("/tmp/package_lists/filelists.xml"):
         logging.error("filelists.xml not found!")
         return
 
-    domTree = minidom.parse("../package_lists/filelists.xml")
+    domTree = minidom.parse("/tmp/package_lists/filelists.xml")
     collection = domTree.documentElement
 
     if collection.hasAttribute("packages"):
@@ -96,7 +96,7 @@ def get_pkg_tags():
 
     numOfiter = 0
 
-    pkgTagsFile = open("../package_lists/pkg_tags.list", "a")
+    pkgTagsFile = open("/tmp/package_lists/pkg_tags.list", "a")
 
     for pkg in pkgs:
 
@@ -142,7 +142,7 @@ def get_pkg_tags():
 
 
 def create_local_repo():
-    if not os.path.exists("../package_lists/pkg_tags.list"):
+    if not os.path.exists("/tmp/package_lists/pkg_tags.list"):
         logging.error("pkg_tags.list not found!")
         return
 
@@ -151,7 +151,7 @@ def create_local_repo():
         os.makedirs(LOCAL_REPO_DIR+"Packages/")
         logging.info(f"New directory created: {LOCAL_REPO_DIR}Packages.")
 
-    pkgTagsFile = open("../package_lists/pkg_tags.list", "r")
+    pkgTagsFile = open("/tmp/package_lists/pkg_tags.list", "r")
     pkgTags = pkgTagsFile.readlines()
     for pkgTagInUrl in pkgTags:
         url = urlPrefix+pkgTagInUrl[:-1]+fileExtension  # 舍弃末元素“\n”
@@ -162,18 +162,20 @@ def create_local_repo():
 
 
 def clean_tmp_files():
-    os.remove("../package_lists/filelists.xml.gz")
-    logging.info("filelists.xml.gz deleted.")
+    if os.path.exists("/tmp/package_lists/filelists.xml.gz"):
+        os.remove("/tmp/package_lists/filelists.xml.gz")
+        logging.info("filelists.xml.gz deleted.")
 
-    os.remove("../package_lists/filelists.xml")
-    logging.info("filelists.xml deleted.")
+    if os.path.exists("/tmp/package_lists/filelists.xml"):
+        os.remove("/tmp/package_lists/filelists.xml")
+        logging.info("filelists.xml deleted.")
 
-    os.remove("../package_lists/pkg_tags.list")
-    logging.info("pkg_tags.list deleted.")
+    if os.path.exists("/tmp/package_lists/pkg_tags.list"):
+        os.remove("/tmp/package_lists/pkg_tags.list")
+        logging.info("pkg_tags.list deleted.")
 
 
 if __name__ == "__main__":
     download_filelists()
     get_pkg_tags()
     create_local_repo()
-    # clean_tmp_files()
