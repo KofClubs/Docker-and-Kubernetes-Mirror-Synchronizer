@@ -1,0 +1,9 @@
+<!-- Incomplete, only the structure is retained -->
+<?xml version="1.0" encoding="UTF-8"?>
+<filelists xmlns="http://linux.duke.edu/metadata/filelists" packages="16">
+<package pkgid="d7fd4d523fc2f86436842c24a093be05da29cb214eb46e0d76769bd53bbeb050" name="containerd.io" arch="x86_64">
+  <version epoch="0" ver="1.3.7" rel="3.1.el8"/>
+  <file type="dir">/etc/containerd</file>
+  <file>/etc/containerd/config.toml</file>
+</package>
+</filelists>

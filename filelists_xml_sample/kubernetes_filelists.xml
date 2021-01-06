@@ -1,0 +1,7 @@
+<!-- Incomplete, only the file structure is retained -->
+<?xml version="1.0" encoding="UTF-8"?>
+<filelists xmlns="http://linux.duke.edu/metadata/filelists" packages="612">
+<package pkgid="29e7806d1d54cc0eea2963f4ab276778526538816c88c963ece7d1a05fd80792" name="cri-tools" arch="x86_64">
+  <version epoch="0" ver="1.0.0_beta.1" rel="0"></version>
+  <file>/usr/bin/crictl</file>
+</package></filelists>
