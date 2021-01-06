@@ -8,9 +8,19 @@ import getopt
 import gzip
 
 from settings import LINUX_DISTRIBUTION, SOURCE, TESTING_VERSION_PERMISSION, VERSION_DEPTH, LOCAL_REPO_DIR
+from batch_downloader import download_by_filename_list
 
-filelistsXmlGzUrl = "https://mirrors.aliyun.com/kubernetes/yum/repos/kubernetes-el7-x86_64/repodata/filelists.xml.gz"
+# 软件包列表压缩包下载源前缀，包含在repodata目录下，追加软件包列表文件名即可下载，缺省值：阿里云Kubernetes镜像
+filelistsXmlGzUrlPrefix = "https://mirrors.aliyun.com/kubernetes/yum/repos/kubernetes-el7-x86_64/repodata/"
+# 软件包列表压缩包下载目标目录，缺省值：Kubernetes镜像对应的临时目录
+filelistsDir = "/tmp/kubernetes/package_lists/"
+# 软件包列表压缩包文件名
+filelistsXmlGzFilename = "filelists.xml.gz"
+# 软件包列表文件名，缺省值：Kubernetes镜像
+filelistsXmlFilename = "kubernetes_filelists.xml"
+# 软件包下载源前缀，追加软件包名即可下载，缺省值：阿里云Kubernetes镜像
 urlPrefix = "https://mirrors.aliyun.com/kubernetes/yum/repos/kubernetes-el7-x86_64/Packages/"
+# 软件包拓展名，例如deb、rpm...
 fileExtension = ".rpm"
 
 testingVersionPermission = True
@@ -18,6 +28,8 @@ versionDepth = 0
 
 
 def __init__():
+    logging.basicConfig(level=logging.INFO, stream=sys.stdout)
+
     linuxDistribution = LINUX_DISTRIBUTION
     source = SOURCE
 
@@ -25,12 +37,15 @@ def __init__():
     testingVersionPermission = TESTING_VERSION_PERMISSION
     versionDepth = VERSION_DEPTH
 
-    global filelistsXmlGzUrl, urlPrefix, fileExtension
+    global filelistsXmlGzUrlPrefix, filelistsDir, filelistsXmlGzFilename, filelistsXmlFilename, urlPrefix, fileExtension
     # TODO RedHat系发行版
     if linuxDistribution == "centos":
         fileExtension = ".rpm"
         if source == "aliyun":
-            filelistsXmlGzUrl = "https://mirrors.aliyun.com/kubernetes/yum/repos/kubernetes-el7-x86_64/repodata/filelists.xml.gz"
+            filelistsXmlGzUrlPrefix = "https://mirrors.aliyun.com/kubernetes/yum/repos/kubernetes-el7-x86_64/repodata/"
+            filelistsDir = "/tmp/kubernetes/package_lists/"
+            filelistsXmlGzFilename = "filelists.xml.gz"
+            filelistsXmlFilename = "kubernetes_filelists.xml"
             urlPrefix = "https://mirrors.aliyun.com/kubernetes/yum/repos/kubernetes-el7-x86_64/Packages/"
             logging.info("Source of mirrors is set to Aliyun.")
         elif source == "google":
@@ -61,31 +76,33 @@ def __init__():
 
 
 def download_filelists():
-    if not os.path.exists("/tmp/package_lists"):
-        os.makedirs("/tmp/package_lists")
-        logging.info("New directory created: /tmp/package_lists.")
+    global filelistsXmlGzUrlPrefix, filelistsDir, filelistsXmlGzFilename, filelistsXmlFilename
+    if not os.path.exists(filelistsDir):
+        os.makedirs(filelistsDir)
+        logging.info(f"New directory created: {filelistsDir}.")
 
-    global filelistsXmlGzUrl
-    urlretrieve(filelistsXmlGzUrl,
-                filename="/tmp/package_lists/filelists.xml.gz")
+    urlretrieve(filelistsXmlGzUrlPrefix+filelistsXmlGzFilename,
+                filename=filelistsDir+filelistsXmlGzFilename)
     logging.info(
-        "filelists.xml.gz downloaded: /tmp/package_lists/filelists.xml.gz.")
+        f"{filelistsXmlGzFilename} downloaded: {filelistsDir+filelistsXmlGzFilename}.")
 
-    gzFile = gzip.open("/tmp/package_lists/filelists.xml.gz", "rb")
-    xmlFile = open("/tmp/package_lists/filelists.xml", "w")
+    gzFile = gzip.open(filelistsDir+filelistsXmlGzFilename, "rb")
+    xmlFile = open(filelistsDir+filelistsXmlFilename, "w")
     content = gzFile.read()
     xmlFile.write(content.decode("utf-8"))
-    logging.info("filelists.xml created: /tmp/package_lists/filelists.xml.")
+    logging.info(
+        f"{filelistsXmlFilename} created: {filelistsDir+filelistsXmlFilename}.")
     gzFile.close()
     xmlFile.close()
 
 
-def get_pkg_tags():
-    if not os.path.exists("/tmp/package_lists/filelists.xml"):
-        logging.error("filelists.xml not found!")
+def get_kubernetes_pkg_filenames():
+    global filelistsDir, filelistsXmlFilename
+    if not os.path.exists(filelistsDir+filelistsXmlFilename):
+        logging.error(f"{filelistsXmlFilename} not found!")
         return
 
-    domTree = minidom.parse("/tmp/package_lists/filelists.xml")
+    domTree = minidom.parse(filelistsDir+filelistsXmlFilename)
     collection = domTree.documentElement
 
     if collection.hasAttribute("packages"):
@@ -96,7 +113,7 @@ def get_pkg_tags():
 
     numOfiter = 0
 
-    pkgTagsFile = open("/tmp/package_lists/pkg_tags.list", "a")
+    pkgFilenameList = open(filelistsDir+"kubernetes_filename.list", "a")
 
     for pkg in pkgs:
 
@@ -134,48 +151,31 @@ def get_pkg_tags():
                   "epoch": verEpoch, "ver": ver, "rel": verRel}
         logging.info(json.dumps(pkgTag))
 
-        pkgTagInUrl = pkgid+"-"+pkgName+"-"+ver+"-"+verRel+"."+pkgArch
+        pkgFilename = pkgid+"-"+pkgName+"-"+ver+"-"+verRel+"."+pkgArch+fileExtension
 
-        pkgTagsFile.write(pkgTagInUrl+"\n")
+        pkgFilenameList.write(pkgFilename+"\n")
 
-    pkgTagsFile.close()
-
-
-def create_local_repo():
-    if not os.path.exists("/tmp/package_lists/pkg_tags.list"):
-        logging.error("pkg_tags.list not found!")
-        return
-
-    global urlPrefix, fileExtension
-    if not os.path.exists(LOCAL_REPO_DIR+"Packages/"):
-        os.makedirs(LOCAL_REPO_DIR+"Packages/")
-        logging.info(f"New directory created: {LOCAL_REPO_DIR}Packages.")
-
-    pkgTagsFile = open("/tmp/package_lists/pkg_tags.list", "r")
-    pkgTags = pkgTagsFile.readlines()
-    for pkgTagInUrl in pkgTags:
-        url = urlPrefix+pkgTagInUrl[:-1]+fileExtension  # 舍弃末元素“\n”
-        urlretrieve(url, filename=LOCAL_REPO_DIR +
-                    "Packages/"+pkgTagInUrl[:-1]+fileExtension)
-
-    os.system(f"createrepo {LOCAL_REPO_DIR}")
+    pkgFilenameList.close()
 
 
 def clean_tmp_files():
-    if os.path.exists("/tmp/package_lists/filelists.xml.gz"):
-        os.remove("/tmp/package_lists/filelists.xml.gz")
-        logging.info("filelists.xml.gz deleted.")
+    global filelistsDir, filelistsXmlGzFilename, filelistsXmlFilename
+    if os.path.exists(filelistsDir+filelistsXmlGzFilename):
+        os.remove(filelistsDir+filelistsXmlGzFilename)
+        logging.info(f"{filelistsXmlGzFilename} deleted.")
 
-    if os.path.exists("/tmp/package_lists/filelists.xml"):
-        os.remove("/tmp/package_lists/filelists.xml")
-        logging.info("filelists.xml deleted.")
+    if os.path.exists(filelistsDir+filelistsXmlFilename):
+        os.remove(filelistsDir+filelistsXmlFilename)
+        logging.info(f"{filelistsXmlFilename} deleted.")
 
-    if os.path.exists("/tmp/package_lists/pkg_tags.list"):
-        os.remove("/tmp/package_lists/pkg_tags.list")
-        logging.info("pkg_tags.list deleted.")
+    if os.path.exists(filelistsDir+"kubernetes_filename.list"):
+        os.remove(filelistsDir+"kubernetes_filename.list")
+        logging.info("kubernetes_filename.list deleted.")
 
 
 if __name__ == "__main__":
     download_filelists()
-    get_pkg_tags()
-    create_local_repo()
+    get_kubernetes_pkg_filenames()
+    download_by_filename_list(
+        urlPrefix, LOCAL_REPO_DIR+"Packages/", filelistsDir+"kubernetes_filename.list")
+    os.system(f"createrepo {LOCAL_REPO_DIR}")
