@@ -47,8 +47,13 @@ def __init__():
             if DOCKER_SOURCE == "aliyun":
                 filelistsXmlGzUrlPrefix = f"https://mirrors.aliyun.com/docker-ce/linux/centos/{LINUX_DISTRIBUTION_VERSION}/{LINUX_DISTRIBUTION_ARCHITECTURE}/{DOCKER_BRANCH}/repodata/"
                 filelistsDir = "/tmp/docker/package_lists/"
-                # TODO 这样的实现非常糟糕，在测试通过后必须修改！
-                filelistsXmlGzFilename = "4f4228eb3311ea0aa989899650e160033723d95d534dfcfc2f028bd59214c99f-filelists.xml.gz"
+                ##########
+                # TODO 这样的实现非常糟糕，只在不确定的短期内有效，在测试通过后必须修改！
+                if LINUX_DISTRIBUTION_VERSION == "7":
+                    filelistsXmlGzFilename = "9fb269ce35ec3e0980ade1963547657afe2a21ac962d5d46c80eb4a28fa22dd6-filelists.xml.gz"
+                else:
+                    filelistsXmlGzFilename = "4f4228eb3311ea0aa989899650e160033723d95d534dfcfc2f028bd59214c99f-filelists.xml.gz"
+                ##########
                 filelistsXmlFilename = "docker_filelists.xml"
                 urlPrefix = f"https://mirrors.aliyun.com/docker-ce/linux/centos/{LINUX_DISTRIBUTION_VERSION}/{LINUX_DISTRIBUTION_ARCHITECTURE}/{DOCKER_BRANCH}/Packages/"
                 logging.info("Source of mirrors is set to Aliyun.")
