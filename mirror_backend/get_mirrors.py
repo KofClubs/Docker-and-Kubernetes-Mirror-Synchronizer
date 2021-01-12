@@ -22,7 +22,7 @@ def list_mirrors():
     for i in range(len(mirrorIdList)):
         resp.append({"id": mirrorIdList[i], "name": mirrorNameList[i], "latest_tag": latestTagList[i],
                      "status": statusList[i], "timestamp": latestSyncTimestampList[i], "icon": iconList[i]})
-    return Response(json.dumps(resp))
+    return Response(json.dumps(resp), mimetype='application/json')
 
 
 if __name__ == "__main__":
