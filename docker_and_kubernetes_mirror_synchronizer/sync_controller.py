@@ -191,6 +191,15 @@ if __name__ == "__main__":
         logging.error(
             "Environment variable DOCKER_OR_KUBERNETES is unsupported/illegal!")
         sys.exit()
-    download_by_filename_list(urlPrefix, localRepoDir+"Packages/",
-                              filelistsDir+f"{DOCKER_OR_KUBERNETES}_filename.list")
+    latestSyncTimestamp, failedList = download_by_filename_list(
+        urlPrefix, localRepoDir+"Packages/", filelistsDir+f"{DOCKER_OR_KUBERNETES}_filename.list")
     os.system(f"createrepo {localRepoDir}")
+
+    if len(failedList) > 0:
+        logging.warn(f"Failed to retrieve this/these package(s): {failedList}")
+    # 发生了更新
+    if len(latestSyncTimestamp) > 0:
+        # TODO 怎样处理这个时间戳？？？
+        print(latestSyncTimestamp)
+    else:
+        logging.info("No package(s) updated.")
