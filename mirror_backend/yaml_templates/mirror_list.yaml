@@ -1,0 +1,14 @@
+# 内部名，一一对应镜像列表的成员
+id: kubernetes
+# 目录，给镜像成员分类
+category: []
+# 网页上显示名称
+name: Kubernetes(k8s)
+# 互异的软件包名数目，例如600个k8s软件包涵盖了12种（每种软件包存在不同版本）
+count_of_pkgname: 12
+# 镜像状态，同步中、同步完成、长期未同步（异常）
+status: syncing
+# 最近一次同步时间，物理时钟
+latest_timestamp: 31415926
+# 头像，例如k8s可以用舵轮
+icon: example.com/images/kubernetes.svg
