@@ -1,4 +1,7 @@
+from flask import Flask
+from flask.json import jsonify
 import gzip
+import json
 import logging
 import os
 import sys
@@ -166,7 +169,11 @@ def clean_tmp_files():
         logging.info(f"Deleted {DOCKER_OR_KUBERNETES}_filename.list")
 
 
-if __name__ == "__main__":
+app = Flask(__name__)
+
+
+@app.route("/mirrors/sync_status")
+def sync():
     __init__()
     download_filelists()
 
@@ -195,11 +202,24 @@ if __name__ == "__main__":
         urlPrefix, localRepoDir+"Packages/", filelistsDir+f"{DOCKER_OR_KUBERNETES}_filename.list")
     os.system(f"createrepo {localRepoDir}")
 
-    if len(failedList) > 0:
-        logging.warn(f"Failed to retrieve this/these package(s): {failedList}")
-    # 发生了更新
-    if len(latestSyncTimestamp) > 0:
-        # TODO 怎样处理这个时间戳？？？
-        print(latestSyncTimestamp)
+    '''
+    软件包同步结果JSON字段：
+    "latest_sync_timestamp" 最近同步时间戳，str，格式是ISO 8601，例如2021-01-13T08:00:00+08:00（北京时间），悬空表示未同步，可以丢弃这条消息；
+    "status" 同步状态，str，"completed"表示完整地同步，"incompleted"表示虽然任务完成，但是存在失败
+    '''
+    returnedKV = {
+        "latest_sync_timestamp": latestSyncTimestamp}  # 被返回的键值对，包含软件包同步信息
+    if len(failedList) == 0:
+        returnedKV["status"] = "completed"
     else:
+        returnedKV["status"] = "incompleted"
+        logging.warn(f"Failed to retrieve this/these package(s): {failedList}")
+    # 发生了更新http://127.0.0.1:5000//mirrors/sync_status
+    if len(latestSyncTimestamp) == 0:
         logging.info("No package(s) updated.")
+    # TODO 把这条消息发送到指定端口
+    return jsonify(returnedKV)
+
+
+if __name__ == "__main__":
+    app.run()
