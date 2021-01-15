@@ -12,6 +12,9 @@
 2. 执行get_mirrors，随时查询本地存储状态，获得软件包归集信息，访问`127.0.0.1:5000/mirrors`，获得软件包大类信息；
 3. 执行get_mirror_wiki，对指定仓库，例如Kubernetes，访问`127.0.0.1:5000/mirrors/kubernetes`，获得软件包分类信息。
 
+## 容器化部署
+1. sync_controller的容器化部署：`docker run -it -v /var/local_repo:/var/local_repo -p 5000:5000 <容器名> /bin/bash`
+
 ## Kubernetes软件包下载、安装和配置
 
 ```dotnetcli
