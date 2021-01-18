@@ -13,7 +13,8 @@
 3. 执行get_mirror_wiki，对指定仓库，例如Kubernetes，访问`127.0.0.1:5000/mirrors/kubernetes`，获得软件包分类信息。
 
 ## 容器化部署
-1. sync_controller的容器化部署：`docker run -it -v /var/local_repo:/var/local_repo -p 5000:5000 <容器名> /bin/bash`
+1. sync_controller的容器化部署：`docker run -it -v /var/local_repo:/var/local_repo -p <宿主机端口>:5000 <容器名> /bin/bash`
+进入容器执行`python3 sync_controller.py`即可，访问<宿主机端口>/mirrors/sync_status即可拿到数据
 
 ## Kubernetes软件包下载、安装和配置
 

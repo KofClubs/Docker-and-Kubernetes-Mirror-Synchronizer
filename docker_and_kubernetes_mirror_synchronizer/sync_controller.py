@@ -214,7 +214,7 @@ def sync():
     else:
         returnedKV["status"] = "incompleted"
         logging.warn(f"Failed to retrieve this/these package(s): {failedList}")
-    # 发生了更新http://127.0.0.1:5000//mirrors/sync_status
+    # 发生了更新http://127.0.0.1:5000/mirrors/sync_status
     if len(latestSyncTimestamp) == 0:
         logging.info("No package(s) updated.")
     # TODO 把这条消息发送到指定端口
