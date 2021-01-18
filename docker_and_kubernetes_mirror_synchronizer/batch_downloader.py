@@ -8,6 +8,7 @@ from urllib.request import urlretrieve
 
 def __init__():
     logging.basicConfig(level=logging.INFO, stream=sys.stdout)
+    socket.setdefaulttimeout(60)
 
 
 '''
