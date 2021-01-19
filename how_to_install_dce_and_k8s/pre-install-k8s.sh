@@ -4,13 +4,13 @@ set -ex
 
 ## 检查用户权限，这个脚本要求root权限
 # TODO 最好通过UID校验用户权限，在虚拟机出现误报
-user="$(id -un 2>/dev/null || true)"
-if [ "$user" = 'root' ]; then
-    echo "User permission check OK."
-else
-    echo "You are not root, please press Ctrl+C to abort..."
-    exit 1
-fi
+# user="$(id -un 2>/dev/null || true)"
+# if [ "$user" = 'root' ]; then
+#     echo "User permission check OK."
+# else
+#     echo "You are not root, please press Ctrl+C to abort..."
+#     exit 1
+# fi
 
 ## 检查操作系统发行版
 # TODO
