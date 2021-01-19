@@ -10,7 +10,7 @@ fi
 cat <<EOF > /etc/yum.repos.d/kubernetes.repo
 [kubernetes]
 name=Kubernetes
-baseurl=https://mirrors.daocloud.io/kubernetes/yum/repos/kubernetes-el7-x86_64/
+baseurl=http://mirrors.daocloud.io/kubernetes/yum/repos/kubernetes-el7-x86_64/
 enabled=1
 gpgcheck=0
 EOF
@@ -30,7 +30,7 @@ systemctl restart kubelet
 ## 把“uid hostname”写入hosts，配置k8s网络
 echo "Configuring kubernetes network at file:///etc/hosts..."
 echo `ip route get 1 | awk '{print $NF;exit}'` `hostname` >> /etc/hosts
-kubeadm init --image-repository mirrors.daocloud.io/google_containers --pod-network-cidr 172.32.0.0/16 # 指定pod网络的IP地址范围
+kubeadm init --image-repository 10.6.20.1/gcr_containers --pod-network-cidr 172.32.0.0/16 # 指定pod网络的IP地址范围
 
 ## 启用用户级kubernetes设置
 echo Enabling user-level configurations at file://$HOME/.kube...
