@@ -372,11 +372,11 @@ do_install() {
 			exit 0
 			;;
 		centos|fedora|rhel)
-			yum_repo="$DOWNLOAD_URL/linux/$lsb_dist/$REPO_FILE"
-			if ! curl -Ifs "$yum_repo" > /dev/null; then
-				echo "Error: Unable to curl repository file $yum_repo, is it valid?"
-				exit 1
-			fi
+			yum_repo="./docker-ce.repo" # Temporary local repo files
+			# if ! curl -Ifs "$yum_repo" > /dev/null; then
+			# 	echo "Error: Unable to curl repository file $yum_repo, is it valid?"
+			# 	exit 1
+			# fi
 			if [ "$lsb_dist" = "fedora" ]; then
 				pkg_manager="dnf"
 				config_manager="dnf config-manager"
