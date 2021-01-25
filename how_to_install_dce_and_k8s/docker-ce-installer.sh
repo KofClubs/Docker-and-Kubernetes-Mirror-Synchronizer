@@ -436,7 +436,7 @@ do_install() {
 				if ! is_dry_run; then
 					set -x
 				fi
-				$sh_c "$pkg_manager install -y -q $pre_reqs"
+				$sh_c "$pkg_manager install -y $pre_reqs"
 				$sh_c "$config_manager --add-repo $yum_repo"
 
 				if [ "$CHANNEL" != "stable" ]; then
@@ -474,9 +474,9 @@ do_install() {
 				fi
 				# install the correct cli version first
 				if [ -n "$cli_pkg_version" ]; then
-					$sh_c "$pkg_manager install -y -q docker-ce-cli-$cli_pkg_version"
+					$sh_c "$pkg_manager install -y docker-ce-cli-$cli_pkg_version"
 				fi
-				$sh_c "$pkg_manager install -y -q docker-ce$pkg_version"
+				$sh_c "$pkg_manager install -y docker-ce$pkg_version"
 			)
 			echo_docker_as_nonroot
 			exit 0
