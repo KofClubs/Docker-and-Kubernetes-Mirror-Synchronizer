@@ -1,11 +1,40 @@
 #!/bin/sh
+set -e
+# Docker CE for Linux installation script
+#
+# See https://docs.docker.com/install/ for the installation steps.
+#
+# This script is meant for quick & easy install via:
+#   $ curl -fsSL https://get.docker.com -o get-docker.sh
+#   $ sh get-docker.sh
+#
+# For test builds (ie. release candidates):
+#   $ curl -fsSL https://test.docker.com -o test-docker.sh
+#   $ sh test-docker.sh
+#
+# NOTE: Make sure to verify the contents of the script
+#       you downloaded matches the contents of install.sh
+#       located at https://github.com/docker/docker-install
+#       before executing.
+#
+# Git commit from https://github.com/docker/docker-install when
+# the script was uploaded (Should only be modified by upload job):
+SCRIPT_COMMIT_SHA="26ff363bcf3b3f5a00498ac43694bf1c7d9ce16c"
 
-set -ex
 
-# 缺省值设置，在无其他命令行参数时有效
+# The channel to install from:
+#   * nightly
+#   * test
+#   * stable
+#   * edge (deprecated)
 DEFAULT_CHANNEL_VALUE="stable"
 if [ -z "$CHANNEL" ]; then
 	CHANNEL=$DEFAULT_CHANNEL_VALUE
+fi
+
+DEFAULT_DOWNLOAD_URL="https://download.docker.com"
+if [ -z "$DOWNLOAD_URL" ]; then
+	DOWNLOAD_URL=$DEFAULT_DOWNLOAD_URL
 fi
 
 DEFAULT_REPO_FILE="docker-ce.repo"
@@ -31,7 +60,17 @@ while [ $# -gt 0 ]; do
 	shift $(( $# > 0 ? 1 : 0 ))
 done
 
-DOWNLOAD_URL="https://mirrors.daocloud.io/docker-ce"
+case "$mirror" in
+	Aliyun)
+		DOWNLOAD_URL="https://mirrors.aliyun.com/docker-ce"
+		;;
+	AzureChinaCloud)
+		DOWNLOAD_URL="https://mirror.azure.cn/docker-ce"
+		;;
+esac
+
+# Force config: daocloud
+DOWNLOAD_URL="http://mirrors.daocloud.io/docker-ce"
 
 command_exists() {
 	command -v "$@" > /dev/null 2>&1
@@ -180,6 +219,7 @@ semverParse() {
 }
 
 do_install() {
+	echo "# Executing docker install script, commit: $SCRIPT_COMMIT_SHA"
 
 	if command_exists docker; then
 		docker_version="$(docker -v | cut -d ' ' -f3 | cut -d ',' -f1)"
@@ -372,11 +412,11 @@ do_install() {
 			exit 0
 			;;
 		centos|fedora|rhel)
-			yum_repo="./docker-ce.repo" # Temporary local repo files
-			# if ! curl -Ifs "$yum_repo" > /dev/null; then
-			# 	echo "Error: Unable to curl repository file $yum_repo, is it valid?"
-			# 	exit 1
-			# fi
+			yum_repo="$DOWNLOAD_URL/linux/$lsb_dist/$REPO_FILE"
+			if ! curl -Ifs "$yum_repo" > /dev/null; then
+				echo "Error: Unable to curl repository file $yum_repo, is it valid?"
+				exit 1
+			fi
 			if [ "$lsb_dist" = "fedora" ]; then
 				pkg_manager="dnf"
 				config_manager="dnf config-manager"
