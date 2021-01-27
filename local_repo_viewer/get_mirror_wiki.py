@@ -9,11 +9,11 @@ from pkgname_ver_gen import list_pkgdir
 app = Flask(__name__)
 
 
-@app.route("/mirrors/kubernetes")
+@app.route("/mirrors/kubernetes/yum_repo")
 def gen_pkgname_ver():
     pkgDir = "/var/local_repo/kubernetes/yum/repos/kubernetes-el7-x86_64/Packages/"
     pkgname_ver = list_pkgdir(pkgDir)
-    return jsonify({"name": "Kubernetes(k8s)", "count_of_pkgname": len(pkgname_ver), "pkgname_ver": pkgname_ver})
+    return jsonify({"name": "Kubernetes(k8s) YUM", "count_of_pkgname": len(pkgname_ver), "pkgname_ver": pkgname_ver})
 
 
 if __name__ == "__main__":
